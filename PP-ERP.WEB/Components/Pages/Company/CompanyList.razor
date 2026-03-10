@@ -1,0 +1,23 @@
+﻿@page "/company"
+@using PP_ERP.DTO.Company
+
+<ListPage DataSource="@CompanyDS">
+
+</ListPage>
+
+@code
+{
+    public List<RESULT_COMPANY_DTO> CompanyDS { get; } = new List<RESULT_COMPANY_DTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CompanyDS.Add(new RESULT_COMPANY_DTO()
+            {
+                COMPANY_CODE = "Test",
+                COMPANY_NAME = "Test",
+
+            });
+
+        await Task.CompletedTask;
+    }
+}

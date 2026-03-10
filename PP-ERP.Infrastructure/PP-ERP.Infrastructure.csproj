@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PP-ERP.Application\PP-ERP.Application.csproj" />
+    <ProjectReference Include="..\PP-ERP.DTO\PP-ERP.DTO.csproj" />
   </ItemGroup>
 
 </Project>

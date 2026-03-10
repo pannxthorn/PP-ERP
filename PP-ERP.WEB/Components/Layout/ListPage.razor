@@ -1,0 +1,18 @@
+﻿@namespace PP_ERP.WEB.Components.Layout
+@typeparam TValue
+
+<SfGrid DataSource="@DataSource"
+        AllowPaging="@AllowPaging"
+        AllowSorting="@AllowSorting"
+        AllowFiltering="@AllowFiltering">
+    <GridPageSettings PageSize="@PageSize"></GridPageSettings>
+</SfGrid>
+
+@code
+{
+    [Parameter] public List<TValue> DataSource { get; set; } = new List<TValue>();
+    [Parameter] public bool AllowPaging { get; set; }
+    [Parameter] public bool AllowSorting { get; set; }
+    [Parameter] public bool AllowFiltering { get; set; }
+    [Parameter] public int PageSize { get; set; }
+}
