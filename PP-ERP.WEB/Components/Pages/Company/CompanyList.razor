@@ -1,8 +1,14 @@
 ﻿@page "/company"
 @using PP_ERP.DTO.Company
 
-<ListPage DataSource="@CompanyDS">
-
+<ListPage TValue="RESULT_COMPANY_DTO" DataSource="@CompanyDS" Title="Company">
+    <GridColumns>
+        <GridColumn Field="@nameof(RESULT_COMPANY_DTO.COMPANY_CODE)" HeaderText="Code" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_COMPANY_DTO.COMPANY_NAME)" HeaderText="Company Name" Width="250"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_COMPANY_DTO.TAX_NO)" HeaderText="Tax No." Width="150"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_COMPANY_DTO.PHONE)" HeaderText="Phone" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_COMPANY_DTO.EMAIL)" HeaderText="Email" Width="200"></GridColumn>
+    </GridColumns>
 </ListPage>
 
 @code
