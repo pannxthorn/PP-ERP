@@ -9,11 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Syncfusion.Blazor" Version="26.2.9" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PP-ERP.Infrastructure\PP-ERP.Infrastructure.csproj" />
+    <ProjectReference Include="..\PP-ERP.DTO\PP-ERP.DTO.csproj" />
   </ItemGroup>
 
 </Project>

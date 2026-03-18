@@ -1,11 +1,20 @@
 using PP_ERP.WEB.Components;
+using PP_ERP.WEB.Services.Base;
+using PP_ERP.WEB.Services.Company;
 using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents();
+builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents();
+
 builder.Services.AddSyncfusionBlazor();
+builder.Services.AddHttpClient();
+
+// Services
+builder.Services.AddScoped<RestCommon>();
+builder.Services.AddScoped<CompanyService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -21,6 +30,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>();
+app.MapRazorComponents<App>()
+   .AddInteractiveServerRenderMode();
 
 app.Run();

@@ -9,11 +9,13 @@
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="13.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PP-ERP.Domain\PP-ERP.Domain.csproj" />
+    <ProjectReference Include="..\PP-ERP.DTO\PP-ERP.DTO.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,7 @@
 ﻿@page "/company"
 @using PP_ERP.DTO.Company
+@using PP_ERP.WEB.Services.Company
+@inject CompanyService CompanyService
 
 <ListPage TValue="RESULT_COMPANY_DTO" DataSource="@CompanyDS" Title="Company">
     <GridColumns>
@@ -13,17 +15,14 @@
 
 @code
 {
-    public List<RESULT_COMPANY_DTO> CompanyDS { get; } = new List<RESULT_COMPANY_DTO>();
+    public List<RESULT_COMPANY_DTO> CompanyDS { get; set; } = new List<RESULT_COMPANY_DTO>();
 
     protected override async Task OnInitializedAsync()
     {
-        CompanyDS.Add(new RESULT_COMPANY_DTO()
-            {
-                COMPANY_CODE = "Test",
-                COMPANY_NAME = "Test",
-
-            });
-
-        await Task.CompletedTask;
+        var response = await CompanyService.GetAllCompany();
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            CompanyDS = response.DATA;
+        }
     }
 }

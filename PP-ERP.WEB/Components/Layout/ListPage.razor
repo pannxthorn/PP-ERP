@@ -39,7 +39,7 @@
                 AllowSorting="@AllowSorting"
                 AllowFiltering="@AllowFiltering"
                 AllowTextWrap="true">
-            <GridPageSettings PageSize="@PageSize" PageSizes="@(new List<int>{10, 25, 50})"></GridPageSettings>
+            <GridPageSettings PageSize="@PageSize" PageSizes="new object[] {10, 50}"></GridPageSettings>
             @if (ChildContent != null)
             {
                 @ChildContent
@@ -59,4 +59,6 @@
     [Parameter] public int PageSize { get; set; } = 10;
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? ToolbarContent { get; set; }
+
+    // private object PageSizeOptions { get; set; } = new object[] { 10, 20, 50, 100 };
 }
