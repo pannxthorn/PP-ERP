@@ -1,0 +1,30 @@
+@namespace PP_ERP.WEB.Components.Layout
+
+<div class="info-section @(IsCollapsed ? "collapsed" : "")">
+    <div class="info-section-header" @onclick="Toggle">
+        <span class="info-section-title">@Title</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="info-section-chevron">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+    </div>
+    @if (!IsCollapsed)
+    {
+        <div class="info-section-body">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code
+{
+    [Parameter] public string Title { get; set; } = "Section";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool IsCollapsed { get; set; } = false;
+
+    private void Toggle()
+    {
+        IsCollapsed = !IsCollapsed;
+    }
+}

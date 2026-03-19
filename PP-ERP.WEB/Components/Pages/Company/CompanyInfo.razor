@@ -1,0 +1,149 @@
+@page "/company/create"
+@page "/company/{Id}"
+@page "/company/{Id}/edit"
+
+@using PP_ERP.DTO.Company
+@using PP_ERP.DTO.Enums
+@using PP_ERP.WEB.Components.Layout
+@using Syncfusion.Blazor.Buttons
+@inject NavigationManager Navigation
+
+<InfoPage Title="@GetTitle()"
+          Breadcrumb="Organization Management > Company > ข้อมูลบริษัท"
+          Mode="@CurrentMode"
+          IsLoading="@IsLoading"
+          OnSave="HandleSave"
+          OnEdit="HandleEdit"
+          OnDelete="HandleDelete"
+          OnBack="HandleBack">
+
+    <ChildContent>
+        <InfoSection Title="ทั่วไป">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Company Code <span class="text-danger">*</span></label>
+                    <SfTextBox @bind-Value="Model.COMPANY_CODE" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Company Name <span class="text-danger">*</span></label>
+                    <SfTextBox @bind-Value="Model.COMPANY_NAME" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tax No.</label>
+                    <SfTextBox @bind-Value="Model.TAX_NO" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Phone</label>
+                    <SfTextBox @bind-Value="Model.PHONE" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fax</label>
+                    <SfTextBox @bind-Value="Model.FAX" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Email</label>
+                    <SfTextBox @bind-Value="Model.EMAIL" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Line</label>
+                    <SfTextBox @bind-Value="Model.LINE" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Facebook</label>
+                    <SfTextBox @bind-Value="Model.FACEBOOK" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Website</label>
+                    <SfTextBox @bind-Value="Model.WEBSITE" Readonly="@IsReadOnly" />
+                </div>
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-12">
+                    <label class="form-label">Comment</label>
+                    <SfTextBox @bind-Value="Model.COMMENT" Readonly="@IsReadOnly" Multiline="true" />
+                </div>
+            </div>
+        </InfoSection>
+    </ChildContent>
+
+    <StatusContent>
+        <SfCheckBox Label="" TChecked="bool"
+                    Checked="@Model.IS_ACTIVE"
+                    CheckedChanged="@((bool val) => Model.IS_ACTIVE = val)"
+                    Disabled="@IsReadOnly" />
+    </StatusContent>
+
+</InfoPage>
+
+@code
+{
+    [Parameter] public string? Id { get; set; }
+
+    private PARAM_COMPANY_DTO Model { get; set; } = new();
+    private PageMode CurrentMode { get; set; }
+    private bool IsLoading { get; set; } = false;
+    private bool IsReadOnly => CurrentMode == PageMode.View;
+
+    private string GetTitle()
+    {
+        return CurrentMode switch
+        {
+            PageMode.Create => "เพิ่มข้อมูลบริษัท",
+            PageMode.Edit => "แก้ไขข้อมูลบริษัท",
+            _ => "ข้อมูลบริษัท"
+        };
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+
+        if (string.IsNullOrEmpty(Id))
+        {
+            CurrentMode = PageMode.Create;
+            Model = new PARAM_COMPANY_DTO { IS_ACTIVE = true };
+        }
+        else if (uri.AbsolutePath.EndsWith("/edit", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentMode = PageMode.Edit;
+            await LoadCompany();
+        }
+        else
+        {
+            CurrentMode = PageMode.View;
+            await LoadCompany();
+        }
+    }
+
+    private async Task LoadCompany()
+    {
+        IsLoading = true;
+        // TODO: call CompanyService.GetCompanyById(Id)
+        await Task.CompletedTask;
+        IsLoading = false;
+    }
+
+    private async Task HandleSave()
+    {
+        // TODO: call CompanyService.CreateCompany(Model) or UpdateCompany(Model)
+        await Task.CompletedTask;
+        Navigation.NavigateTo("/company");
+    }
+
+    private void HandleEdit()
+    {
+        Navigation.NavigateTo($"/company/{Id}/edit");
+    }
+
+    private async Task HandleDelete()
+    {
+        // TODO: call CompanyService.DeleteCompany(Id)
+        await Task.CompletedTask;
+        Navigation.NavigateTo("/company");
+    }
+
+    private void HandleBack()
+    {
+        Navigation.NavigateTo("/company");
+    }
+}

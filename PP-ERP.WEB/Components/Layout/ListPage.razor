@@ -34,23 +34,36 @@
         </div>
     </div>
     <div class="card-body">
-        <SfGrid DataSource="@DataSource"
-                AllowPaging="@AllowPaging"
-                AllowSorting="@AllowSorting"
-                AllowFiltering="@AllowFiltering"
-                AllowTextWrap="true">
-            <GridPageSettings PageSize="@PageSize" PageSizes="new object[] {10, 50}"></GridPageSettings>
-            @if (ChildContent != null)
-            {
-                @ChildContent
-            }
-        </SfGrid>
+        @if (IsLoading)
+        {
+            <div class="d-flex justify-content-center align-items-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-3">Loading...</span>
+            </div>
+        }
+        else
+        {
+            <SfGrid DataSource="@DataSource"
+                    AllowPaging="@AllowPaging"
+                    AllowSorting="@AllowSorting"
+                    AllowFiltering="@AllowFiltering"
+                    AllowTextWrap="true">
+                <GridPageSettings PageSize="@PageSize" PageSizes="new object[] {10, 50}"></GridPageSettings>
+                @if (ChildContent != null)
+                {
+                    @ChildContent
+                }
+            </SfGrid>
+        }
     </div>
 </div>
 
 @code
 {
     [Parameter] public List<TValue> DataSource { get; set; } = new List<TValue>();
+    [Parameter] public bool IsLoading { get; set; } = false;
     [Parameter] public string Title { get; set; } = "List";
     [Parameter] public string? CreateUrl { get; set; }
     [Parameter] public bool AllowPaging { get; set; } = true;

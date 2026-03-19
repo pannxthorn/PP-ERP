@@ -1,10 +1,33 @@
-﻿@page "/company"
+@page "/company"
 @using PP_ERP.DTO.Company
 @using PP_ERP.WEB.Services.Company
 @inject CompanyService CompanyService
+@inject NavigationManager Navigation
 
-<ListPage TValue="RESULT_COMPANY_DTO" DataSource="@CompanyDS" Title="Company">
+<ListPage TValue="RESULT_COMPANY_DTO"
+          DataSource="@CompanyDS"
+          Title="Company"
+          CreateUrl="/company/create"
+          IsLoading="@IsLoading">
     <GridColumns>
+        <GridColumn HeaderText="Actions" Width="120" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
+            <Template>
+                @{
+                    var item = (context as RESULT_COMPANY_DTO);
+                    if (item != null)
+                    {
+                        <div class="d-flex justify-content-center gap-1">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => GoToView(item.COMPANY_ID)">
+                                View
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => GoToEdit(item.COMPANY_ID)">
+                                Edit
+                            </button>
+                        </div>
+                    }
+                }
+            </Template>
+        </GridColumn>
         <GridColumn Field="@nameof(RESULT_COMPANY_DTO.COMPANY_CODE)" HeaderText="Code" Width="150"></GridColumn>
         <GridColumn Field="@nameof(RESULT_COMPANY_DTO.COMPANY_NAME)" HeaderText="Company Name" Width="250"></GridColumn>
         <GridColumn Field="@nameof(RESULT_COMPANY_DTO.TAX_NO)" HeaderText="Tax No." Width="150"></GridColumn>
@@ -16,13 +39,19 @@
 @code
 {
     public List<RESULT_COMPANY_DTO> CompanyDS { get; set; } = new List<RESULT_COMPANY_DTO>();
+    public bool IsLoading { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
+        IsLoading = true;
         var response = await CompanyService.GetAllCompany();
         if (response.IS_SUCCESS && response.DATA != null)
         {
             CompanyDS = response.DATA;
         }
+        IsLoading = false;
     }
+
+    private void GoToView(int id) => Navigation.NavigateTo($"/company/{id}");
+    private void GoToEdit(int id) => Navigation.NavigateTo($"/company/{id}/edit");
 }
