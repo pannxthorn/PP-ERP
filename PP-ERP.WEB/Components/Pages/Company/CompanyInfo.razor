@@ -5,8 +5,10 @@
 @using PP_ERP.DTO.Company
 @using PP_ERP.DTO.Enums
 @using PP_ERP.WEB.Components.Layout
+@using PP_ERP.WEB.Services.Company
 @using Syncfusion.Blazor.Buttons
 @inject NavigationManager Navigation
+@inject CompanyService CompanyService
 
 <InfoPage Title="@GetTitle()"
           Breadcrumb="Organization Management > Company > ข้อมูลบริษัท"
@@ -117,29 +119,68 @@
 
     private async Task LoadCompany()
     {
+        if (!int.TryParse(Id, out var companyId)) return;
+
         IsLoading = true;
-        // TODO: call CompanyService.GetCompanyById(Id)
-        await Task.CompletedTask;
+        var response = await CompanyService.GetCompanyById(companyId);
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            var data = response.DATA;
+            Model = new PARAM_COMPANY_DTO
+            {
+                COMPANY_ID = data.COMPANY_ID,
+                COMPANY_CODE = data.COMPANY_CODE,
+                COMPANY_NAME = data.COMPANY_NAME,
+                TAX_NO = data.TAX_NO,
+                PHONE = data.PHONE,
+                FAX = data.FAX,
+                EMAIL = data.EMAIL,
+                LINE = data.LINE,
+                FACEBOOK = data.FACEBOOK,
+                WEBSITE = data.WEBSITE,
+                LOGO = data.LOGO,
+                COMMENT = data.COMMENT,
+                IS_ACTIVE = data.IS_ACTIVE,
+                IS_DELETE = data.IS_DELETE
+            };
+        }
         IsLoading = false;
     }
 
     private async Task HandleSave()
     {
-        // TODO: call CompanyService.CreateCompany(Model) or UpdateCompany(Model)
-        await Task.CompletedTask;
-        Navigation.NavigateTo("/company");
+        if (CurrentMode == PageMode.Create)
+        {
+            var response = await CompanyService.CreateCompany(Model);
+            if (response.IS_SUCCESS)
+            {
+                Navigation.NavigateTo("/company");
+            }
+        }
+        else if (CurrentMode == PageMode.Edit && int.TryParse(Id, out var companyId))
+        {
+            var response = await CompanyService.UpdateCompany(companyId, Model);
+            if (response.IS_SUCCESS)
+            {
+                Navigation.NavigateTo("/company");
+            }
+        }
     }
 
     private void HandleEdit()
     {
-        Navigation.NavigateTo($"/company/{Id}/edit");
+        CurrentMode = PageMode.Edit;
     }
 
     private async Task HandleDelete()
     {
-        // TODO: call CompanyService.DeleteCompany(Id)
-        await Task.CompletedTask;
-        Navigation.NavigateTo("/company");
+        if (!int.TryParse(Id, out var companyId)) return;
+
+        var response = await CompanyService.DeleteCompany(companyId);
+        if (response.IS_SUCCESS)
+        {
+            Navigation.NavigateTo("/company");
+        }
     }
 
     private void HandleBack()
