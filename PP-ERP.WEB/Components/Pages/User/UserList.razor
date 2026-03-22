@@ -1,0 +1,131 @@
+@page "/user"
+@using PP_ERP.DTO.User
+@using PP_ERP.DTO.Company
+@using PP_ERP.DTO.Branch
+@using PP_ERP.WEB.Services.User
+@using PP_ERP.WEB.Services.Company
+@using PP_ERP.WEB.Services.Branch
+@inject UserService UserService
+@inject CompanyService CompanyService
+@inject BranchService BranchService
+@inject NavigationManager Navigation
+
+<ListPage TValue="RESULT_USER_DTO"
+          DataSource="@UserDS"
+          Title="User"
+          CreateUrl="/user/create"
+          IsLoading="@IsLoading">
+    <GridColumns>
+        <GridColumn HeaderText="Actions" Width="180" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
+            <Template>
+                @{
+                    var item = (context as RESULT_USER_DTO);
+                    if (item != null)
+                    {
+                        <div class="d-flex justify-content-center gap-1">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => _goToView(item.USER_ID)">
+                                View
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => _goToEdit(item.USER_ID)">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => _handleDelete(item.USER_ID)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn Field="@nameof(RESULT_USER_DTO.USERNAME)" HeaderText="Username" Width="200"></GridColumn>
+        <GridColumn HeaderText="Company" Width="200">
+            <Template>
+                @{
+                    var item = (context as RESULT_USER_DTO);
+                    if (item?.COMPANY_ID != null)
+                    {
+                        @(_companyMap.TryGetValue(item.COMPANY_ID.Value, out var name) ? name : "-")
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn HeaderText="Branch" Width="200">
+            <Template>
+                @{
+                    var item = (context as RESULT_USER_DTO);
+                    if (item?.BRANCH_ID != null)
+                    {
+                        @(_branchMap.TryGetValue(item.BRANCH_ID.Value, out var name) ? name : "-")
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn HeaderText="Active" Width="100" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
+            <Template>
+                @{
+                    var item = (context as RESULT_USER_DTO);
+                    if (item != null)
+                    {
+                        <input type="checkbox" checked="@item.IS_ACTIVE" disabled />
+                    }
+                }
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</ListPage>
+
+@code
+{
+    public List<RESULT_USER_DTO> UserDS { get; set; } = new List<RESULT_USER_DTO>();
+    public bool IsLoading { get; set; } = true;
+
+    private Dictionary<int, string> _companyMap = new();
+    private Dictionary<int, string> _branchMap = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+
+        var companyTask = CompanyService.GetAllCompany();
+        var branchTask = BranchService.GetAllBranch();
+        var userTask = UserService.GetAllUser();
+
+        await Task.WhenAll(companyTask, branchTask, userTask);
+
+        var companyRes = companyTask.Result;
+        if (companyRes.IS_SUCCESS && companyRes.DATA != null)
+        {
+            _companyMap = companyRes.DATA.ToDictionary(x => x.COMPANY_ID, x => x.COMPANY_NAME);
+        }
+
+        var branchRes = branchTask.Result;
+        if (branchRes.IS_SUCCESS && branchRes.DATA != null)
+        {
+            _branchMap = branchRes.DATA.ToDictionary(x => x.BRANCH_ID, x => x.BRANCH_NAME);
+        }
+
+        var userRes = userTask.Result;
+        if (userRes.IS_SUCCESS && userRes.DATA != null)
+        {
+            UserDS = userRes.DATA;
+        }
+
+        IsLoading = false;
+    }
+
+    private void _goToView(int id) => Navigation.NavigateTo($"/user/{id}");
+    private void _goToEdit(int id) => Navigation.NavigateTo($"/user/{id}/edit");
+
+    private async Task _handleDelete(int id)
+    {
+        var response = await UserService.DeleteUser(id);
+        if (response.IS_SUCCESS)
+        {
+            UserDS = UserDS.Where(x => x.USER_ID != id).ToList();
+        }
+    }
+}

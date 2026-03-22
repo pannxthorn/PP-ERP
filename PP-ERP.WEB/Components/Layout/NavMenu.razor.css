@@ -95,6 +95,73 @@
     white-space: nowrap;
 }
 
+/* ===== Group menu (parent with sub-items) ===== */
+.nav-item-group {
+    padding: 0.125rem 0.75rem;
+}
+
+.nav-group-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    color: #5e6278;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+.nav-group-toggle:hover {
+    background-color: #f1f3f9;
+    color: #009ef7;
+}
+
+.nav-arrow {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.nav-group-toggle.expanded .nav-arrow {
+    transform: rotate(180deg);
+}
+
+/* ===== Sub menu ===== */
+.nav-sub-menu {
+    padding-left: 1rem;
+}
+
+.nav-sub-menu .nav-item ::deep .nav-link {
+    font-size: 0.825rem;
+    padding: 0.45rem 0.75rem 0.45rem 1.5rem;
+    position: relative;
+}
+
+.nav-sub-menu .nav-item ::deep .nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #b5b5c3;
+    transition: background-color 0.15s ease;
+}
+
+.nav-sub-menu .nav-item ::deep a.active::before,
+.nav-sub-menu .nav-item ::deep .nav-link:hover::before {
+    background-color: #009ef7;
+}
+
 /* ===== Scrollable area ===== */
 .nav-scrollable {
     display: none;

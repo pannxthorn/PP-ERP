@@ -1,0 +1,234 @@
+@page "/user/create"
+@page "/user/{Id}"
+@page "/user/{Id}/edit"
+
+@using PP_ERP.DTO.User
+@using PP_ERP.DTO.Company
+@using PP_ERP.DTO.Branch
+@using PP_ERP.DTO.Enums
+@using PP_ERP.WEB.Components.Layout
+@using PP_ERP.WEB.Services.User
+@using PP_ERP.WEB.Services.Company
+@using PP_ERP.WEB.Services.Branch
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@inject NavigationManager Navigation
+@inject UserService UserService
+@inject CompanyService CompanyService
+@inject BranchService BranchService
+
+<InfoPage Title="@_getTitle()"
+          Breadcrumb="User Management > User > ข้อมูลผู้ใช้งาน"
+          Mode="@CurrentMode"
+          IsLoading="@IsLoading"
+          OnSave="_handleSave"
+          OnEdit="_handleEdit"
+          OnDelete="_handleDelete"
+          OnBack="_handleBack">
+
+    <ChildContent>
+        <InfoSection Title="ทั่วไป">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Company</label>
+                    <SfDropDownList TValue="int?" TItem="RESULT_COMPANY_DTO"
+                                    Value="@Model.COMPANY_ID"
+                                    ValueChanged="@_onCompanyChanged"
+                                    DataSource="@CompanyList"
+                                    Placeholder="เลือกบริษัท"
+                                    Enabled="@(!IsReadOnly)">
+                        <DropDownListFieldSettings Text="COMPANY_NAME" Value="COMPANY_ID" />
+                    </SfDropDownList>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Branch</label>
+                    <SfDropDownList TValue="int?" TItem="RESULT_BRANCH_DTO"
+                                    Value="@Model.BRANCH_ID"
+                                    ValueChanged="@((int? val) => Model.BRANCH_ID = val)"
+                                    DataSource="@FilteredBranchList"
+                                    Placeholder="เลือกสาขา"
+                                    Enabled="@(!IsReadOnly)">
+                        <DropDownListFieldSettings Text="BRANCH_NAME" Value="BRANCH_ID" />
+                    </SfDropDownList>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Username <span class="text-danger">*</span></label>
+                    <SfTextBox @bind-Value="Model.USERNAME" Readonly="@IsReadOnly" />
+                </div>
+                @if (CurrentMode != PageMode.View)
+                {
+                    <div class="col-md-3">
+                        <label class="form-label">Password @(CurrentMode == PageMode.Create ? "*" : "(เว้นว่างหากไม่เปลี่ยน)")</label>
+                        <SfTextBox @bind-Value="Model.PASSWORD" Readonly="@IsReadOnly" Type="InputType.Password" />
+                    </div>
+                }
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-12">
+                    <label class="form-label">Comment</label>
+                    <SfTextBox @bind-Value="Model.COMMENT" Readonly="@IsReadOnly" Multiline="true" />
+                </div>
+            </div>
+        </InfoSection>
+    </ChildContent>
+
+    <StatusContent>
+        <SfCheckBox Label="" TChecked="bool"
+                    Checked="@Model.IS_ACTIVE"
+                    CheckedChanged="@((bool val) => Model.IS_ACTIVE = val)"
+                    Disabled="@IsReadOnly" />
+    </StatusContent>
+
+</InfoPage>
+
+@code
+{
+    [Parameter] public string? Id { get; set; }
+
+    private PARAM_USER_DTO Model { get; set; } = new();
+    private List<RESULT_COMPANY_DTO> CompanyList { get; set; } = new();
+    private List<RESULT_BRANCH_DTO> AllBranchList { get; set; } = new();
+    private List<RESULT_BRANCH_DTO> FilteredBranchList { get; set; } = new();
+    private PageMode CurrentMode { get; set; }
+    private bool IsLoading { get; set; } = false;
+    private bool IsReadOnly => CurrentMode == PageMode.View;
+
+    private string _getTitle()
+    {
+        return CurrentMode switch
+        {
+            PageMode.Create => "เพิ่มข้อมูลผู้ใช้งาน",
+            PageMode.Edit => "แก้ไขข้อมูลผู้ใช้งาน",
+            _ => "ข้อมูลผู้ใช้งาน"
+        };
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+
+        await _loadCompanies();
+        await _loadBranches();
+
+        if (string.IsNullOrEmpty(Id))
+        {
+            CurrentMode = PageMode.Create;
+            Model = new PARAM_USER_DTO { IS_ACTIVE = true };
+        }
+        else if (uri.AbsolutePath.EndsWith("/edit", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentMode = PageMode.Edit;
+            await _loadUser();
+        }
+        else
+        {
+            CurrentMode = PageMode.View;
+            await _loadUser();
+        }
+
+        _filterBranches();
+    }
+
+    private async Task _loadCompanies()
+    {
+        var response = await CompanyService.GetAllCompany();
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            CompanyList = response.DATA;
+        }
+    }
+
+    private async Task _loadBranches()
+    {
+        var response = await BranchService.GetAllBranch();
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            AllBranchList = response.DATA;
+        }
+    }
+
+    private void _filterBranches()
+    {
+        if (Model.COMPANY_ID.HasValue)
+        {
+            FilteredBranchList = AllBranchList
+                .Where(x => x.COMPANY_ID == Model.COMPANY_ID.Value)
+                .ToList();
+        }
+        else
+        {
+            FilteredBranchList = new();
+        }
+    }
+
+    private void _onCompanyChanged(int? val)
+    {
+        Model.COMPANY_ID = val;
+        Model.BRANCH_ID = null;
+        _filterBranches();
+    }
+
+    private async Task _loadUser()
+    {
+        if (!int.TryParse(Id, out var userId)) return;
+
+        IsLoading = true;
+        var response = await UserService.GetUserById(userId);
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            var data = response.DATA;
+            Model = new PARAM_USER_DTO
+            {
+                USER_ID = data.USER_ID,
+                COMPANY_ID = data.COMPANY_ID,
+                BRANCH_ID = data.BRANCH_ID,
+                USERNAME = data.USERNAME,
+                COMMENT = data.COMMENT,
+                IS_ACTIVE = data.IS_ACTIVE,
+                IS_DELETE = data.IS_DELETE
+            };
+        }
+        IsLoading = false;
+    }
+
+    private async Task _handleSave()
+    {
+        if (CurrentMode == PageMode.Create)
+        {
+            var response = await UserService.CreateUser(Model);
+            if (response.IS_SUCCESS)
+            {
+                Navigation.NavigateTo("/user");
+            }
+        }
+        else if (CurrentMode == PageMode.Edit && int.TryParse(Id, out var userId))
+        {
+            var response = await UserService.UpdateUser(userId, Model);
+            if (response.IS_SUCCESS)
+            {
+                Navigation.NavigateTo("/user");
+            }
+        }
+    }
+
+    private void _handleEdit()
+    {
+        CurrentMode = PageMode.Edit;
+    }
+
+    private async Task _handleDelete()
+    {
+        if (!int.TryParse(Id, out var userId)) return;
+
+        var response = await UserService.DeleteUser(userId);
+        if (response.IS_SUCCESS)
+        {
+            Navigation.NavigateTo("/user");
+        }
+    }
+
+    private void _handleBack()
+    {
+        Navigation.NavigateTo("/user");
+    }
+}

@@ -26,26 +26,80 @@
             </NavLink>
         </div>
 
-        <div class="nav-item">
-            <NavLink class="nav-link" href="company">
+        <div class="nav-item-group">
+            <button class="nav-group-toggle @(_orgExpanded ? "expanded" : "")" @onclick="_toggleOrg">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                 </span>
-                <span class="nav-text">Company</span>
-            </NavLink>
-        </div>
+                <span class="nav-text">Organization</span>
+                <span class="nav-arrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </span>
+            </button>
 
-        <div class="nav-item">
-            <NavLink class="nav-link" href="branch">
+            @if (_orgExpanded)
+            {
+                <div class="nav-sub-menu">
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="company">
+                            <span class="nav-text">Company</span>
+                        </NavLink>
+                    </div>
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="branch">
+                            <span class="nav-text">Branch</span>
+                        </NavLink>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="nav-item-group">
+            <button class="nav-group-toggle @(_userExpanded ? "expanded" : "")" @onclick="_toggleUser">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 21h18M9 8h1M9 12h1M9 16h1M14 8h1M14 12h1M14 16h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
                     </svg>
                 </span>
-                <span class="nav-text">Branch</span>
-            </NavLink>
+                <span class="nav-text">User Management</span>
+                <span class="nav-arrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </span>
+            </button>
+
+            @if (_userExpanded)
+            {
+                <div class="nav-sub-menu">
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="user">
+                            <span class="nav-text">User</span>
+                        </NavLink>
+                    </div>
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="role">
+                            <span class="nav-text">Role & Permission</span>
+                        </NavLink>
+                    </div>
+                </div>
+            }
         </div>
     </nav>
 </div>
+
+@code
+{
+    private bool _orgExpanded = true;
+    private bool _userExpanded = true;
+
+    private void _toggleOrg() => _orgExpanded = !_orgExpanded;
+    private void _toggleUser() => _userExpanded = !_userExpanded;
+}
