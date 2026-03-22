@@ -1,0 +1,212 @@
+@page "/branch/create"
+@page "/branch/{Id}"
+@page "/branch/{Id}/edit"
+
+@using PP_ERP.DTO.Branch
+@using PP_ERP.DTO.Company
+@using PP_ERP.DTO.Enums
+@using PP_ERP.WEB.Components.Layout
+@using PP_ERP.WEB.Services.Branch
+@using PP_ERP.WEB.Services.Company
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@inject NavigationManager Navigation
+@inject BranchService BranchService
+@inject CompanyService CompanyService
+
+<InfoPage Title="@_getTitle()"
+          Breadcrumb="Organization Management > Branch > ข้อมูลสาขา"
+          Mode="@CurrentMode"
+          IsLoading="@IsLoading"
+          OnSave="_handleSave"
+          OnEdit="_handleEdit"
+          OnDelete="_handleDelete"
+          OnBack="_handleBack">
+
+    <ChildContent>
+        <InfoSection Title="ทั่วไป">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Company <span class="text-danger">*</span></label>
+                    <SfDropDownList TValue="int" TItem="RESULT_COMPANY_DTO"
+                                    Value="@Model.COMPANY_ID"
+                                    ValueChanged="@((int val) => Model.COMPANY_ID = val)"
+                                    DataSource="@CompanyList"
+                                    Placeholder="เลือกบริษัท"
+                                    Enabled="@(!IsReadOnly)">
+                        <DropDownListFieldSettings Text="COMPANY_NAME" Value="COMPANY_ID" />
+                    </SfDropDownList>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Branch Code <span class="text-danger">*</span></label>
+                    <SfTextBox @bind-Value="Model.BRANCH_CODE" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Branch Name <span class="text-danger">*</span></label>
+                    <SfTextBox @bind-Value="Model.BRANCH_NAME" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Headquarter</label>
+                    <div class="mt-2">
+                        <SfCheckBox Label="สาขาสำนักงานใหญ่" TChecked="bool"
+                                    Checked="@Model.IS_HEADQUARTER"
+                                    CheckedChanged="@((bool val) => Model.IS_HEADQUARTER = val)"
+                                    Disabled="@IsReadOnly" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Phone</label>
+                    <SfTextBox @bind-Value="Model.PHONE" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Email</label>
+                    <SfTextBox @bind-Value="Model.EMAIL" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Line</label>
+                    <SfTextBox @bind-Value="Model.LINE" Readonly="@IsReadOnly" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Facebook</label>
+                    <SfTextBox @bind-Value="Model.FACEBOOK" Readonly="@IsReadOnly" />
+                </div>
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-12">
+                    <label class="form-label">Comment</label>
+                    <SfTextBox @bind-Value="Model.COMMENT" Readonly="@IsReadOnly" Multiline="true" />
+                </div>
+            </div>
+        </InfoSection>
+    </ChildContent>
+
+    <StatusContent>
+        <SfCheckBox Label="" TChecked="bool"
+                    Checked="@Model.IS_ACTIVE"
+                    CheckedChanged="@((bool val) => Model.IS_ACTIVE = val)"
+                    Disabled="@IsReadOnly" />
+    </StatusContent>
+
+</InfoPage>
+
+@code
+{
+    [Parameter] public string? Id { get; set; }
+
+    private PARAM_BRANCH_DTO Model { get; set; } = new();
+    private List<RESULT_COMPANY_DTO> CompanyList { get; set; } = new();
+    private PageMode CurrentMode { get; set; }
+    private bool IsLoading { get; set; } = false;
+    private bool IsReadOnly => CurrentMode == PageMode.View;
+
+    private string _getTitle()
+    {
+        return CurrentMode switch
+        {
+            PageMode.Create => "เพิ่มข้อมูลสาขา",
+            PageMode.Edit => "แก้ไขข้อมูลสาขา",
+            _ => "ข้อมูลสาขา"
+        };
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+
+        await _loadCompanies();
+
+        if (string.IsNullOrEmpty(Id))
+        {
+            CurrentMode = PageMode.Create;
+            Model = new PARAM_BRANCH_DTO { IS_ACTIVE = true };
+        }
+        else if (uri.AbsolutePath.EndsWith("/edit", StringComparison.OrdinalIgnoreCase))
+        {
+            CurrentMode = PageMode.Edit;
+            await _loadBranch();
+        }
+        else
+        {
+            CurrentMode = PageMode.View;
+            await _loadBranch();
+        }
+    }
+
+    private async Task _loadCompanies()
+    {
+        var response = await CompanyService.GetAllCompany();
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            CompanyList = response.DATA;
+        }
+    }
+
+    private async Task _loadBranch()
+    {
+        if (!int.TryParse(Id, out var branchId)) return;
+
+        IsLoading = true;
+        var response = await BranchService.GetBranchById(branchId);
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            var data = response.DATA;
+            Model = new PARAM_BRANCH_DTO
+            {
+                BRANCH_ID = data.BRANCH_ID,
+                COMPANY_ID = data.COMPANY_ID,
+                BRANCH_CODE = data.BRANCH_CODE,
+                BRANCH_NAME = data.BRANCH_NAME,
+                PHONE = data.PHONE,
+                EMAIL = data.EMAIL,
+                LINE = data.LINE,
+                FACEBOOK = data.FACEBOOK,
+                COMMENT = data.COMMENT,
+                IS_HEADQUARTER = data.IS_HEADQUARTER,
+                IS_ACTIVE = data.IS_ACTIVE,
+                IS_DELETE = data.IS_DELETE
+            };
+        }
+        IsLoading = false;
+    }
+
+    private async Task _handleSave()
+    {
+        if (CurrentMode == PageMode.Create)
+        {
+            var response = await BranchService.CreateBranch(Model);
+            if (response.IS_SUCCESS)
+            {
+                Navigation.NavigateTo("/branch");
+            }
+        }
+        else if (CurrentMode == PageMode.Edit && int.TryParse(Id, out var branchId))
+        {
+            var response = await BranchService.UpdateBranch(branchId, Model);
+            if (response.IS_SUCCESS)
+            {
+                Navigation.NavigateTo("/branch");
+            }
+        }
+    }
+
+    private void _handleEdit()
+    {
+        CurrentMode = PageMode.Edit;
+    }
+
+    private async Task _handleDelete()
+    {
+        if (!int.TryParse(Id, out var branchId)) return;
+
+        var response = await BranchService.DeleteBranch(branchId);
+        if (response.IS_SUCCESS)
+        {
+            Navigation.NavigateTo("/branch");
+        }
+    }
+
+    private void _handleBack()
+    {
+        Navigation.NavigateTo("/branch");
+    }
+}

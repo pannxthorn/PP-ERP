@@ -10,18 +10,25 @@
           CreateUrl="/company/create"
           IsLoading="@IsLoading">
     <GridColumns>
-        <GridColumn HeaderText="Actions" Width="120" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
+        <GridColumn HeaderText="Actions" Width="180" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
             <Template>
                 @{
                     var item = (context as RESULT_COMPANY_DTO);
                     if (item != null)
                     {
                         <div class="d-flex justify-content-center gap-1">
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => GoToView(item.COMPANY_ID)">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => _goToView(item.COMPANY_ID)">
                                 View
                             </button>
-                            <button class="btn btn-sm btn-outline-warning" @onclick="() => GoToEdit(item.COMPANY_ID)">
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => _goToEdit(item.COMPANY_ID)">
                                 Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => _handleDelete(item.COMPANY_ID)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
                             </button>
                         </div>
                     }
@@ -52,6 +59,15 @@
         IsLoading = false;
     }
 
-    private void GoToView(int id) => Navigation.NavigateTo($"/company/{id}");
-    private void GoToEdit(int id) => Navigation.NavigateTo($"/company/{id}/edit");
+    private void _goToView(int id) => Navigation.NavigateTo($"/company/{id}");
+    private void _goToEdit(int id) => Navigation.NavigateTo($"/company/{id}/edit");
+
+    private async Task _handleDelete(int id)
+    {
+        var response = await CompanyService.DeleteCompany(id);
+        if (response.IS_SUCCESS)
+        {
+            CompanyDS = CompanyDS.Where(x => x.COMPANY_ID != id).ToList();
+        }
+    }
 }

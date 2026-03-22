@@ -1,0 +1,83 @@
+@page "/branch"
+@using PP_ERP.DTO.Branch
+@using PP_ERP.WEB.Services.Branch
+@inject BranchService BranchService
+@inject NavigationManager Navigation
+
+<ListPage TValue="RESULT_BRANCH_DTO"
+          DataSource="@BranchDS"
+          Title="Branch"
+          CreateUrl="/branch/create"
+          IsLoading="@IsLoading">
+    <GridColumns>
+        <GridColumn HeaderText="Actions" Width="180" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
+            <Template>
+                @{
+                    var item = (context as RESULT_BRANCH_DTO);
+                    if (item != null)
+                    {
+                        <div class="d-flex justify-content-center gap-1">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => _goToView(item.BRANCH_ID)">
+                                View
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => _goToEdit(item.BRANCH_ID)">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => _handleDelete(item.BRANCH_ID)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn Field="@nameof(RESULT_BRANCH_DTO.BRANCH_CODE)" HeaderText="Code" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_BRANCH_DTO.BRANCH_NAME)" HeaderText="Branch Name" Width="250"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_BRANCH_DTO.PHONE)" HeaderText="Phone" Width="150"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_BRANCH_DTO.EMAIL)" HeaderText="Email" Width="200"></GridColumn>
+        <GridColumn HeaderText="HQ" Width="100" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
+            <Template>
+                @{
+                    var item = (context as RESULT_BRANCH_DTO);
+                    if (item != null)
+                    {
+                        <input type="checkbox" checked="@item.IS_HEADQUARTER" disabled />
+                    }
+                }
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</ListPage>
+
+@code
+{
+    public List<RESULT_BRANCH_DTO> BranchDS { get; set; } = new List<RESULT_BRANCH_DTO>();
+    public bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+        var response = await BranchService.GetAllBranch();
+        if (response.IS_SUCCESS && response.DATA != null)
+        {
+            BranchDS = response.DATA;
+        }
+        IsLoading = false;
+    }
+
+    private void _goToView(int id) => Navigation.NavigateTo($"/branch/{id}");
+    private void _goToEdit(int id) => Navigation.NavigateTo($"/branch/{id}/edit");
+
+    private async Task _handleDelete(int id)
+    {
+        var response = await BranchService.DeleteBranch(id);
+        if (response.IS_SUCCESS)
+        {
+            BranchDS = BranchDS.Where(x => x.BRANCH_ID != id).ToList();
+        }
+    }
+}

@@ -169,7 +169,10 @@ namespace PP_ERP.WEB.Services.Base
                 if (res.IsSuccessStatusCode)
                 {
                     var resContent = await res.Content.ReadAsStringAsync();
-                    result.DATA = JsonConvert.DeserializeObject<T>(resContent);
+                    if (!string.IsNullOrEmpty(resContent))
+                    {
+                        result.DATA = JsonConvert.DeserializeObject<T>(resContent);
+                    }
                 }
 
                 return result;
