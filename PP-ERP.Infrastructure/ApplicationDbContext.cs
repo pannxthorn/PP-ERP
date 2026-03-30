@@ -19,6 +19,8 @@ namespace PP_ERP.Infrastructure
         public DbSet<SYS_USER> USER { get; set; }
         public DbSet<FLEX> FLEX { get; set; }
         public DbSet<FLEX_ITEM> FLEX_ITEM { get; set; }
+        public DbSet<PURCHASE_ORDER> PURCHASE_ORDER { get; set; }
+        public DbSet<VENDOR> VENDOR { get; set; }
 
         #endregion [Entities]
 

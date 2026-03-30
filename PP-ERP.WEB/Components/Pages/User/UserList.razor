@@ -1,13 +1,7 @@
 @page "/user"
 @using PP_ERP.DTO.User
-@using PP_ERP.DTO.Company
-@using PP_ERP.DTO.Branch
 @using PP_ERP.WEB.Services.User
-@using PP_ERP.WEB.Services.Company
-@using PP_ERP.WEB.Services.Branch
 @inject UserService UserService
-@inject CompanyService CompanyService
-@inject BranchService BranchService
 @inject NavigationManager Navigation
 
 <ListPage TValue="RESULT_USER_DTO"
@@ -42,28 +36,8 @@
             </Template>
         </GridColumn>
         <GridColumn Field="@nameof(RESULT_USER_DTO.USERNAME)" HeaderText="Username" Width="200"></GridColumn>
-        <GridColumn HeaderText="Company" Width="200">
-            <Template>
-                @{
-                    var item = (context as RESULT_USER_DTO);
-                    if (item?.COMPANY_ID != null)
-                    {
-                        @(_companyMap.TryGetValue(item.COMPANY_ID.Value, out var name) ? name : "-")
-                    }
-                }
-            </Template>
-        </GridColumn>
-        <GridColumn HeaderText="Branch" Width="200">
-            <Template>
-                @{
-                    var item = (context as RESULT_USER_DTO);
-                    if (item?.BRANCH_ID != null)
-                    {
-                        @(_branchMap.TryGetValue(item.BRANCH_ID.Value, out var name) ? name : "-")
-                    }
-                }
-            </Template>
-        </GridColumn>
+        <GridColumn Field="@nameof(RESULT_USER_DTO.COMPANY_NAME)" HeaderText="Company" Width="200"></GridColumn>
+        <GridColumn Field="@nameof(RESULT_USER_DTO.BRANCH_NAME)" HeaderText="Branch" Width="200"></GridColumn>
         <GridColumn HeaderText="Active" Width="100" TextAlign="Syncfusion.Blazor.Grids.TextAlign.Center">
             <Template>
                 @{
@@ -83,32 +57,11 @@
     public List<RESULT_USER_DTO> UserDS { get; set; } = new List<RESULT_USER_DTO>();
     public bool IsLoading { get; set; } = true;
 
-    private Dictionary<int, string> _companyMap = new();
-    private Dictionary<int, string> _branchMap = new();
-
     protected override async Task OnInitializedAsync()
     {
         IsLoading = true;
 
-        var companyTask = CompanyService.GetAllCompany();
-        var branchTask = BranchService.GetAllBranch();
-        var userTask = UserService.GetAllUser();
-
-        await Task.WhenAll(companyTask, branchTask, userTask);
-
-        var companyRes = companyTask.Result;
-        if (companyRes.IS_SUCCESS && companyRes.DATA != null)
-        {
-            _companyMap = companyRes.DATA.ToDictionary(x => x.COMPANY_ID, x => x.COMPANY_NAME);
-        }
-
-        var branchRes = branchTask.Result;
-        if (branchRes.IS_SUCCESS && branchRes.DATA != null)
-        {
-            _branchMap = branchRes.DATA.ToDictionary(x => x.BRANCH_ID, x => x.BRANCH_NAME);
-        }
-
-        var userRes = userTask.Result;
+        var userRes = await UserService.GetAllUser();
         if (userRes.IS_SUCCESS && userRes.DATA != null)
         {
             UserDS = userRes.DATA;

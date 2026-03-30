@@ -27,7 +27,9 @@ namespace PP_ERP.Application.Organization.User
                     {
                         USER_ID = x.USER_ID,
                         COMPANY_ID = x.COMPANY_ID,
+                        COMPANY_NAME = x.COMPANY != null ? x.COMPANY.COMPANY_NAME : null,
                         BRANCH_ID = x.BRANCH_ID,
+                        BRANCH_NAME = x.BRANCH != null ? x.BRANCH.BRANCH_NAME : null,
                         USERNAME = x.USERNAME,
                         COMMENT = x.COMMENT,
                         IS_ACTIVE = x.IS_ACTIVE,

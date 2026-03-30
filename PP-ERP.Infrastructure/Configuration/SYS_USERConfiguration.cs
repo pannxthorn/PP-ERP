@@ -40,6 +40,11 @@ namespace PP_ERP.Infrastructure.Configuration
                 .WithMany()
                 .HasForeignKey(f => f.COMPANY_ID)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(f => f.BRANCH)
+                .WithMany()
+                .HasForeignKey(f => f.BRANCH_ID)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

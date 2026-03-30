@@ -10,7 +10,9 @@ namespace PP_ERP.DTO.User
     {
         public int USER_ID { get; set; }
         public int? COMPANY_ID { get; set; }
+        public string? COMPANY_NAME { get; set; }
         public int? BRANCH_ID { get; set; }
+        public string? BRANCH_NAME { get; set; }
         public required string USERNAME { get; set; }
         public string? COMMENT { get; set; }
         public bool IS_ACTIVE { get; set; }

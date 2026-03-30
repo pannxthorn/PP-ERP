@@ -23,5 +23,6 @@ namespace PP_ERP.Domain.Entities
         public System.Guid ROW_UN { get; set; }
 
         public virtual COMPANY COMPANY { get; set; }
+        public virtual BRANCH BRANCH { get; set; }
     }
 }
