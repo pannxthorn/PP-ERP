@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PP_ERP.Application;
 using PP_ERP.Infrastructure;
 
@@ -30,5 +31,13 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Warmup DB connection — pre-open connection pool so the first real request isn't slow
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await context.Database.OpenConnectionAsync();
+    await context.Database.CloseConnectionAsync();
+}
 
 app.Run();
