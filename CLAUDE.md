@@ -27,19 +27,28 @@ No test project exists yet.
 
 Clean Architecture .NET 8 solution with 6 projects across 4 layers:
 
-**Domain** (`PP-ERP.Domain`) — Entities only, no dependencies. Entities use UPPERCASE naming (COMPANY, BRANCH, SYS_USER, FLEX, FLEX_ITEM) with common audit fields: `CREATED_BY_ID`, `CREATED_DATE`, `LAST_UPDATE_ID`, `LAST_UPDATE_DATE`, `IS_ACTIVE`, `IS_DELETE`, `ROW_UN` (GUID).
+**Domain** (`PP-ERP.Domain`) — Entities only, no dependencies. Entities use UPPERCASE naming (COMPANY, BRANCH, SYS_USER, FLEX, FLEX_ITEM, VENDOR, PURCHASE_ORDER) with common audit fields: `CREATED_BY_ID`, `CREATED_DATE`, `LAST_UPDATE_ID`, `LAST_UPDATE_DATE`, `IS_ACTIVE`, `IS_DELETE`, `ROW_UN` (GUID).
+
+> **In-progress:** VENDOR and PURCHASE_ORDER have domain entities and EF configs but are **not yet wired up** — no DTOs, no IUnitOfWork repository properties, no MediatR handlers, no API controllers, and no WEB pages.
 
 **Application** (`PP-ERP.Application`) — Business logic via MediatR v13 (CQRS pattern). Contains:
 - `Repositories/IRepositories.cs` — Generic repository interface with async CRUD, predicate queries, includes, AsNoTracking, AsSplitQuery support
 - `UnitOfWork/IUnitOfWork.cs` — Exposes typed repository properties (`Company`, `Branch`, `Flex`, `FlexItem`, `User`) plus transaction management
 - `Organization/{Entity}/Queries|Commands/` — MediatR handlers organized by domain area then by operation type
+- `Interfaces/IBlobStorageService.cs` — File storage abstraction (upload/delete/list, public & private containers, CDN support)
+- `Upload/Commands/CommandUploadImage` — MediatR command that chains image resize → blob upload; exposed at `api/upload/image`
+
+No MediatR pipeline behaviors are registered (no validation, logging, or transaction behaviors).
 
 **Infrastructure** (`PP-ERP.Infrastructure`) — EF Core 9 with SQL Server. Contains:
 - `ApplicationDbContext.cs` — DbContext with `ApplyConfigurationsFromAssembly`
 - `Configuration/` — Fluent API entity configs (`IEntityTypeConfiguration<T>`), foreign keys use `DeleteBehavior.Restrict`
 - `Repositories/Repositories.cs` — Generic repository implementation (AsNoTracking and SplitQuery enabled by default)
 - `Persistence/UnitOfWork.cs` — UoW with lazy-loaded repositories and nested transaction support
-- `DependencyInjection.cs` — Registers DbContext (scoped) and `IUnitOfWork`
+- `DependencyInjection.cs` — Registers DbContext (scoped), `IUnitOfWork`, `IBlobStorageService` (Azure SDK), and `IImageProcessingService` (SixLabors.ImageSharp)
+- `Options/AzureStorageOptions.cs` — Bound from `"AzureStorage"` config section: `ConnectionString`, `PublicContainer`, `PrivateContainer`, `StorageUrl`, `CdnUrl`, `UseCdn`
+- `Services/BlobStorageService.cs` — Uploads to Azure Blob Storage with content-type mapping and cache-control headers
+- `Services/ImageProcessingService.cs` — Resizes images to quality levels ("signature"=90, "profile"=85, "general"=80) using Lanczos3 resampling; orientation-aware sizing
 
 **Presentation** — Two startup projects:
 - `PP-ERP.API` — REST API with Swagger (Swashbuckle). Controllers follow standard CRUD pattern at `api/{entity}`. Controllers use MediatR `ISender` to dispatch queries/commands.
@@ -73,7 +82,8 @@ Each layer exposes an `AddX()` extension method called in startup:
 The WEB project has its own service abstraction for API calls:
 - `Services/Base/RestCommon.cs` — HTTP client wrapper using `IHttpClientFactory`, JSON via Newtonsoft.Json
 - `Services/Base/BaseService.cs` — Abstract base with typed Get/Post/Put/Delete methods; all entity services inherit from this
-- Entity services (e.g. `CompanyService`, `BranchService`, `UserService`) provide strongly-typed API calls
+- Entity services (e.g. `CompanyService`, `BranchService`, `UserService`, `UploadService`) provide strongly-typed API calls
+- `UploadService` handles multipart form-data uploads with a 2 MB max file size limit
 - API base URL configured in `PP-ERP.WEB/appsettings.json` (`ApiBaseUrl`: `https://localhost:7260`)
 
 ## WEB Reusable Components
@@ -94,8 +104,9 @@ Entity pages use these route patterns in `Components/Pages/{Entity}/`:
 ## REST API Wrapper DTOs
 
 All API communication uses wrapper types from `PP-ERP.DTO/BaseDTO/`:
-- `PARAM_REST_REQUEST` — Wraps request payloads sent from WEB to API
-- `RESULT_REST_RESPONSE<T>` — Wraps API responses with status, success flag, and typed data
+- `PARAM_REST_REQUEST` — Wraps request payloads; includes `ACCESS_TOKEN` and `AUTO_SERIALIZE_OBJECT_REQUEST_BODY`
+- `RESULT_REST_RESPONSE<T>` — Wraps API responses with `IS_SUCCESS`, `STATUS_CODE`, `RESULT_CONTENT`, `DATA`
+- `BASE_AZURE_BLOB` — File upload response: `FILE_NAME`, `FILE_URL`, `IS_SUCCESS`
 
 ## Soft Delete Pattern
 
