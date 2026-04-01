@@ -77,6 +77,19 @@ namespace PP_ERP.WEB.Services.Base
             }
         }
 
+        public async Task<RESULT_REST_RESPONSE<T>> PostMultipart<T>(string route, MultipartFormDataContent formData)
+        {
+            try
+            {
+                var req = BuildRequest(route);
+                return await _rest.PostMultipartAsync<T>(req, formData);
+            }
+            catch (Exception)
+            {
+                return new RESULT_REST_RESPONSE<T> { IS_SUCCESS = false };
+            }
+        }
+
         public async Task<RESULT_REST_RESPONSE<T>> Delete<T>(string route)
         {
             try

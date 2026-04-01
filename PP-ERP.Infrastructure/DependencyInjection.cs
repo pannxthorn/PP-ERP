@@ -1,13 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PP_ERP.Application.Interfaces;
 using PP_ERP.Application.UnitOfWork;
+using PP_ERP.Infrastructure.Options;
 using PP_ERP.Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PP_ERP.Infrastructure.Services;
 
 namespace PP_ERP.Infrastructure
 {
@@ -22,8 +20,12 @@ namespace PP_ERP.Infrastructure
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
             });
 
-
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.Configure<AzureStorageOptions>(
+                configuration.GetSection(AzureStorageOptions.SectionName));
+            services.AddScoped<IBlobStorageService, BlobStorageService>();
+            services.AddScoped<IImageProcessingService, ImageProcessingService>();
 
             return services;
         }

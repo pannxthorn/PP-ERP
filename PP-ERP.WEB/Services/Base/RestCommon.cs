@@ -152,6 +152,34 @@ namespace PP_ERP.WEB.Services.Base
             }
         }
 
+        public async Task<RESULT_REST_RESPONSE<T>> PostMultipartAsync<T>(PARAM_REST_REQUEST args, MultipartFormDataContent formData)
+        {
+            var result = new RESULT_REST_RESPONSE<T>();
+            try
+            {
+                using var client = InitHttpClient(args);
+                var url = UrlCombine(args.DOMAIN_URL, args.ROUTE);
+                var res = await client.PostAsync(url, formData);
+
+                result.IS_SUCCESS = res.IsSuccessStatusCode;
+                result.STATUS_CODE = res.StatusCode;
+                result.RESULT_CONTENT = res.Content;
+
+                if (res.IsSuccessStatusCode)
+                {
+                    var content = await res.Content.ReadAsStringAsync();
+                    result.DATA = JsonConvert.DeserializeObject<T>(content);
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                result.IS_SUCCESS = false;
+                return result;
+            }
+        }
+
         public async Task<RESULT_REST_RESPONSE<T>> DeleteAsync<T>(PARAM_REST_REQUEST args)
         {
             var result = new RESULT_REST_RESPONSE<T>();

@@ -2,13 +2,16 @@
 @page "/company/{Id}"
 @page "/company/{Id}/edit"
 
+@using Microsoft.AspNetCore.Components.Forms
 @using PP_ERP.DTO.Company
 @using PP_ERP.DTO.Enums
 @using PP_ERP.WEB.Components.Layout
 @using PP_ERP.WEB.Services.Company
+@using PP_ERP.WEB.Services.Upload
 @using Syncfusion.Blazor.Buttons
 @inject NavigationManager Navigation
 @inject CompanyService CompanyService
+@inject UploadService UploadService
 
 <InfoPage Title="@GetTitle()"
           Breadcrumb="Organization Management > Company > ข้อมูลบริษัท"
@@ -22,48 +25,120 @@
     <ChildContent>
         <InfoSection Title="ทั่วไป">
             <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Company Code <span class="text-danger">*</span></label>
-                    <SfTextBox @bind-Value="Model.COMPANY_CODE" Readonly="@IsReadOnly" />
+
+                <!-- Logo Sidebar -->
+                <div class="col-md-3 d-flex flex-column align-items-center">
+                    <div class="logo-preview-wrapper">
+                        @if (!string.IsNullOrEmpty(_logoPreviewSrc))
+                        {
+                            <img src="@_logoPreviewSrc" alt="Company Logo" class="logo-preview-img" />
+                        }
+                        else if (!string.IsNullOrEmpty(Model.LOGO))
+                        {
+                            <img src="@Model.LOGO" alt="Company Logo" class="logo-preview-img" />
+                        }
+                        else
+                        {
+                            <div class="logo-preview-placeholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                                     viewBox="0 0 24 24" fill="none" stroke="#c0c0cc"
+                                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="3" ry="3" />
+                                    <circle cx="8.5" cy="8.5" r="1.5" />
+                                    <polyline points="21 15 16 10 5 21" />
+                                </svg>
+                                <span class="logo-placeholder-text">No Logo</span>
+                            </div>
+                        }
+                    </div>
+                    @if (!IsReadOnly)
+                    {
+                        <InputFile id="logoFileInput"
+                                   OnChange="HandleLogoSelected"
+                                   accept="image/png,image/jpeg,image/gif,image/webp"
+                                   style="display:none;" />
+                        <button type="button"
+                                class="info-btn info-btn-upload mt-2 w-100"
+                                onclick="document.getElementById('logoFileInput').click()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                                <polyline points="16 16 12 12 8 16" />
+                                <line x1="12" y1="12" x2="12" y2="21" />
+                                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+                            </svg>
+                            Upload Logo
+                        </button>
+                        @if (!string.IsNullOrEmpty(_logoPreviewSrc))
+                        {
+                            <button type="button"
+                                    class="info-btn info-btn-remove mt-1 w-100"
+                                    @onclick="ClearLogoPreview">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6l-1 14H6L5 6" />
+                                    <path d="M10 11v6M14 11v6" />
+                                </svg>
+                                Remove
+                            </button>
+                        }
+                        @if (!string.IsNullOrEmpty(_logoError))
+                        {
+                            <small class="text-danger mt-1">@_logoError</small>
+                        }
+                    }
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Company Name <span class="text-danger">*</span></label>
-                    <SfTextBox @bind-Value="Model.COMPANY_NAME" Readonly="@IsReadOnly" />
+
+                <!-- Fields Column -->
+                <div class="col-md-9">
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <label class="form-label">Company Code <span class="text-danger">*</span></label>
+                            <SfTextBox @bind-Value="Model.COMPANY_CODE" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Company Name <span class="text-danger">*</span></label>
+                            <SfTextBox @bind-Value="Model.COMPANY_NAME" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Tax No.</label>
+                            <SfTextBox @bind-Value="Model.TAX_NO" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Phone</label>
+                            <SfTextBox @bind-Value="Model.PHONE" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Fax</label>
+                            <SfTextBox @bind-Value="Model.FAX" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Email</label>
+                            <SfTextBox @bind-Value="Model.EMAIL" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Line</label>
+                            <SfTextBox @bind-Value="Model.LINE" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Facebook</label>
+                            <SfTextBox @bind-Value="Model.FACEBOOK" Readonly="@IsReadOnly" />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Website</label>
+                            <SfTextBox @bind-Value="Model.WEBSITE" Readonly="@IsReadOnly" />
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <label class="form-label">Comment</label>
+                            <SfTextBox @bind-Value="Model.COMMENT" Readonly="@IsReadOnly" Multiline="true" />
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Tax No.</label>
-                    <SfTextBox @bind-Value="Model.TAX_NO" Readonly="@IsReadOnly" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Phone</label>
-                    <SfTextBox @bind-Value="Model.PHONE" Readonly="@IsReadOnly" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Fax</label>
-                    <SfTextBox @bind-Value="Model.FAX" Readonly="@IsReadOnly" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Email</label>
-                    <SfTextBox @bind-Value="Model.EMAIL" Readonly="@IsReadOnly" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Line</label>
-                    <SfTextBox @bind-Value="Model.LINE" Readonly="@IsReadOnly" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Facebook</label>
-                    <SfTextBox @bind-Value="Model.FACEBOOK" Readonly="@IsReadOnly" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Website</label>
-                    <SfTextBox @bind-Value="Model.WEBSITE" Readonly="@IsReadOnly" />
-                </div>
-            </div>
-            <div class="row g-3 mt-1">
-                <div class="col-md-12">
-                    <label class="form-label">Comment</label>
-                    <SfTextBox @bind-Value="Model.COMMENT" Readonly="@IsReadOnly" Multiline="true" />
-                </div>
+
             </div>
         </InfoSection>
     </ChildContent>
@@ -85,6 +160,12 @@
     private PageMode CurrentMode { get; set; }
     private bool IsLoading { get; set; } = false;
     private bool IsReadOnly => CurrentMode == PageMode.View;
+
+    // Logo upload state
+    private string? _logoPreviewSrc;
+    private IBrowserFile? _selectedLogoFile;
+    private string? _logoError;
+    private const long MaxLogoSizeBytes = 2 * 1024 * 1024;
 
     private string GetTitle()
     {
@@ -119,6 +200,7 @@
 
     private async Task LoadCompany()
     {
+        ClearLogoPreview();
         if (!int.TryParse(Id, out var companyId)) return;
 
         IsLoading = true;
@@ -149,6 +231,18 @@
 
     private async Task HandleSave()
     {
+        if (_selectedLogoFile != null)
+        {
+            var uploadResult = await UploadService.UploadImage(_selectedLogoFile);
+            if (!uploadResult.IS_SUCCESS || uploadResult.DATA == null)
+            {
+                _logoError = "อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่";
+                return;
+            }
+            Model.LOGO = uploadResult.DATA.FILE_URL;
+            ClearLogoPreview();
+        }
+
         if (CurrentMode == PageMode.Create)
         {
             var response = await CompanyService.CreateCompany(Model);
@@ -169,6 +263,7 @@
 
     private void HandleEdit()
     {
+        ClearLogoPreview();
         CurrentMode = PageMode.Edit;
     }
 
@@ -186,5 +281,41 @@
     private void HandleBack()
     {
         Navigation.NavigateTo("/company");
+    }
+
+    private async Task HandleLogoSelected(InputFileChangeEventArgs e)
+    {
+        _logoError = null;
+        _logoPreviewSrc = null;
+        _selectedLogoFile = null;
+
+        var file = e.File;
+
+        if (file.Size > MaxLogoSizeBytes)
+        {
+            _logoError = $"ไฟล์ต้องมีขนาดไม่เกิน 2 MB (ปัจจุบัน: {file.Size / 1024} KB)";
+            return;
+        }
+
+        var allowedTypes = new[] { "image/png", "image/jpeg", "image/gif", "image/webp" };
+        if (!allowedTypes.Contains(file.ContentType))
+        {
+            _logoError = "รองรับเฉพาะไฟล์ PNG, JPG, GIF, WEBP";
+            return;
+        }
+
+        using var stream = file.OpenReadStream(maxAllowedSize: MaxLogoSizeBytes);
+        var buffer = new byte[file.Size];
+        await stream.ReadExactlyAsync(buffer);
+
+        _logoPreviewSrc = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        _selectedLogoFile = file;
+    }
+
+    private void ClearLogoPreview()
+    {
+        _logoPreviewSrc = null;
+        _selectedLogoFile = null;
+        _logoError = null;
     }
 }
