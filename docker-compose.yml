@@ -1,0 +1,50 @@
+# บอก Docker Compose ว่าใช้ format version ไหน
+version: "3.8"
+
+# ประกาศ services (container) ทั้งหมดที่ต้องการ
+services:
+
+  # ===== SQL Server =====
+  sqlserver:
+    # ใช้ image สำเร็จรูปของ SQL Server จาก Microsoft
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y                    # ยอมรับ license
+      - MSSQL_SA_PASSWORD=DockerP@ss123  # password ของ sa (ต้องซับซ้อนพอ)
+    ports:
+      - "1433:1433"    # เปิด port ให้เข้าถึงจากเครื่องเราได้
+    volumes:
+      - sqldata:/var/opt/mssql    # เก็บข้อมูลถาวร ไม่หายเมื่อ container ถูกลบ
+
+  # ===== API =====
+  api:
+    # build จาก Dockerfile ที่เราสร้างไว้
+    build:
+      context: .                    # ใช้ root folder เป็นฐาน (เพราะต้อง COPY หลาย project)
+      dockerfile: PP-ERP.API/Dockerfile
+    ports:
+      - "5000:8080"    # เครื่องเรา port 5000 → container port 8080
+    depends_on:
+      - sqlserver      # บอกว่าต้อง start sqlserver ก่อน
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PP_ERP;User Id=sa;Password=DockerP@ss123;TrustServerCertificate=True
+      #                                            ^^^^^^^^^ 
+      #                                            ใช้ชื่อ service แทน localhost
+
+  # ===== WEB =====
+  web:
+    build:
+      context: .
+      dockerfile: PP-ERP.WEB/Dockerfile
+    ports:
+      - "5001:8080"    # เครื่องเรา port 5001 → container port 8080
+    depends_on:
+      - api            # ต้อง start api ก่อน
+    environment:
+      - ApiBaseUrl=http://api:8080
+      #                 ^^^ 
+      #                 ใช้ชื่อ service แทน localhost เช่นกัน
+
+# ประกาศ volume สำหรับเก็บข้อมูล database ถาวร
+volumes:
+  sqldata:

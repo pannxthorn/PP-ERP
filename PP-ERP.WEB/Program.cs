@@ -6,7 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+                .AddInteractiveServerComponents(options =>
+                {
+                    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(1);
+                    options.DisconnectedCircuitMaxRetained = 20;
+                });
 
 builder.Services.AddSyncfusionBlazor();
 builder.Services.AddHttpClient();
